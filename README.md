@@ -7,6 +7,7 @@ Easy to use WebServer for dynamic and static content.
 * [ ] Access to static and dynamic content
 * [ ] Easy setup with Environment variables
 * [ ] Basic authentication
+* [ ] TLS via acme.sh
 
 ## Getting started
 

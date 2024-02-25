@@ -1,8 +1,8 @@
 use actix_web::web::Data;
 use dotenvy::dotenv;
-use std::collections::HashMap;
 use std::env;
 use std::path::PathBuf;
+use std::{collections::HashMap, path::Path};
 
 use actix_files::NamedFile;
 use actix_web::{get, App, HttpRequest, HttpResponse, HttpServer, Responder};
@@ -16,10 +16,10 @@ struct AppData {
 #[get("/{filename:.*}")]
 async fn index(app_data: Data<AppData>, req: HttpRequest) -> actix_web::Result<NamedFile> {
     let path: PathBuf = req.match_info().query("filename").parse().unwrap();
-    println!("Access for {:?}", path);
     // Redirect to root path
-
-    Ok(NamedFile::open(path)?)
+    let absolute_path = Path::new("/srv/public").join(path.clone());
+    println!("Access path:{:?} absolute_path:{:?}", path, absolute_path);
+    Ok(NamedFile::open(absolute_path)?)
 }
 
 #[get("/")]
