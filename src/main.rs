@@ -2,10 +2,11 @@ use actix_web::web::Data;
 use dotenvy::dotenv;
 use std::collections::HashMap;
 use std::env;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use actix_files::NamedFile;
 use actix_web::{get, App, HttpRequest, HttpResponse, HttpServer, Responder};
+use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
 
 // Access paths
 struct AppData {
@@ -15,6 +16,9 @@ struct AppData {
 #[get("/{filename:.*}")]
 async fn index(app_data: Data<AppData>, req: HttpRequest) -> actix_web::Result<NamedFile> {
     let path: PathBuf = req.match_info().query("filename").parse().unwrap();
+    println!("Access for {:?}", path);
+    // Redirect to root path
+
     Ok(NamedFile::open(path)?)
 }
 
@@ -38,6 +42,17 @@ async fn main() -> std::io::Result<()> {
         }
     }
 
+    // load TLS keys
+    // to create a self-signed temporary cert for testing:
+    // `openssl req -x509 -newkey rsa:4096 -nodes -keyout key.pem -out cert.pem -days 365 -subj '/CN=localhost'`
+    let mut builder = SslAcceptor::mozilla_intermediate(SslMethod::tls()).unwrap();
+    builder
+        .set_private_key_file("/etc/certificates/key.pem", SslFiletype::PEM)
+        .unwrap();
+    builder
+        .set_certificate_chain_file("/etc/certificates/cert.pem")
+        .unwrap();
+
     HttpServer::new(move || {
         App::new()
             .app_data(Data::new(AppData {
@@ -46,7 +61,7 @@ async fn main() -> std::io::Result<()> {
             .service(hello)
             .service(index)
     })
-    .bind(("127.0.0.1", 8000))?
+    .bind_openssl("0.0.0.0:8000", builder)?
     .run()
     .await
 }

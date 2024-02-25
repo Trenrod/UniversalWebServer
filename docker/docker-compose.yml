@@ -1,0 +1,13 @@
+version: '3'
+services:
+  certificates:
+    image: neilpang/acme.sh
+    ports:
+      - "80:80"
+    command: >
+      --issue -d pong-battle.lostplace.cc --standalone --accountemail trenrod@gmx.net --fullchain-file "/etc/certificates/fullchain.pem" --key-file "/etc/certificates/key.pem" --cert-file "/etc/certificates/cert.pem"
+    volumes:
+      - certificate-store:/etc/certificates
+
+volumes:
+  certificate-store:
