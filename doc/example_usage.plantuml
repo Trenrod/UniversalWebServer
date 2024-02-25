@@ -1,0 +1,20 @@
+@startuml Example usage
+
+autonumber
+
+participant "Client" as C
+participant "Universal WebServer" as UWS
+
+note over UWS
+Environment variables: 
+ACCESS=[Argon2Hash]:[REGEX FILES]
+e.g.
+ACCESS=xxxxxxxxxx:image{0,9}3.png
+end note
+UWS -> UWS: init Actix
+...
+C -> UWS ++: Get file /image1.png
+UWS --> C --: File content
+
+
+@enduml
