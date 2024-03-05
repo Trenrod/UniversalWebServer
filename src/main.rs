@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use std::{collections::HashMap, path::Path};
 
 use actix_files::NamedFile;
-use actix_web::{get, App, HttpRequest, HttpResponse, HttpServer, Responder};
+use actix_web::{get, middleware, App, HttpRequest, HttpResponse, HttpServer, Responder};
 use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
 
 // Access paths
@@ -19,7 +19,8 @@ async fn index(app_data: Data<AppData>, req: HttpRequest) -> actix_web::Result<N
     // Redirect to root path
     let absolute_path = Path::new("/srv/public").join(path.clone());
     println!("Access path:{:?} absolute_path:{:?}", path, absolute_path);
-    Ok(NamedFile::open(absolute_path)?)
+    let file = NamedFile::open(absolute_path)?;
+    Ok(file)
 }
 
 #[get("/")]
@@ -29,8 +30,9 @@ async fn hello() -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    // load environment variables from .env file
-    dotenv().expect(".env file not found");
+    println!("Universal WebServer started");
+    // load optionally environment variables from .env file
+    let _ = dotenv().inspect_err(|_| println!(".env not loaded"));
     let mut access_map = HashMap::<String, String>::new();
     for (key, value) in env::vars() {
         if !key.starts_with("UWS") {
@@ -55,6 +57,11 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         App::new()
+            .wrap(
+                middleware::DefaultHeaders::new()
+                    .add(("Cross-Origin-Opener-Policy", "same-origin"))
+                    .add(("Cross-Origin-Embedder-Policy", "require-corp")),
+            )
             .app_data(Data::new(AppData {
                 access_map: access_map.clone(),
             }))

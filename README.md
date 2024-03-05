@@ -20,6 +20,8 @@ Easy to use WebServer for dynamic and static content.
 
 ## Getting started
 
+### [Run as Systemd](doc/systemd-setup.md)
+
 TBD
 
 ## Stack
